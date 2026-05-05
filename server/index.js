@@ -14,19 +14,17 @@ import { createRoomsRouter } from './routes/rooms.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const PORT = Number(process.env.PORT || 3001)
-const JWT_SECRET =
-  process.env.JWT_SECRET || 'development-only-change-me-in-production'
+const JWT_SECRET = process.env.JWT_SECRET || 'development-only-change-me-in-production'
 const MONGODB_URI = process.env.MONGODB_URI
 
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI is not defined in .env')
-}
-
-// Initialize MongoDB
-const db = initDb(MONGODB_URI)
-
 const app = express()
+
+// Initialize MongoDB (Mongoose handles the connection queue)
+if (MONGODB_URI) {
+  initDb(MONGODB_URI)
+} else {
+  console.error('CRITICAL: MONGODB_URI is not defined!')
+}
 
 app.locals.jwtSecret = JWT_SECRET
 
@@ -38,26 +36,29 @@ app.use(
 )
 app.use(express.json({ limit: '25mb' }))
 
+// Health check endpoint
+app.get('/api/health', (_req, res) => res.json({ ok: true, message: 'Backend is running' }))
+
 const needsAuth = requireAuth(JWT_SECRET)
 
-const authRouter = createAuthRouter(db, JWT_SECRET)
-const usersRouter = createUsersRouter(db)
-const notesRouter = createNotesRouter(db, JWT_SECRET)
-const filesRouter = createFilesRouter(db)
-const roomsRouter = createRoomsRouter(db)
+// Pass app.locals.db or just the models
+const authRouter = createAuthRouter(null, JWT_SECRET)
+const usersRouter = createUsersRouter(null)
+const notesRouter = createNotesRouter(null, JWT_SECRET)
+const filesRouter = createFilesRouter(null)
+const roomsRouter = createRoomsRouter(null)
 
-app.get('/health', (_req, res) => res.json({ ok: true }))
 app.use('/api/auth', authRouter)
 app.use('/api/users', needsAuth, usersRouter)
 app.use('/api/notes', notesRouter)
 app.use('/api/files', needsAuth, filesRouter)
 app.use('/api/rooms', needsAuth, roomsRouter)
 
-// Only start the server if not running on Vercel
+// For local development
 if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3001
   app.listen(PORT, () => {
-    console.log(`API listening at http://localhost:${PORT}`)
-    console.log(`MongoDB connection initialized`)
+    console.log(`Local API listening at http://localhost:${PORT}`)
   })
 }
 
