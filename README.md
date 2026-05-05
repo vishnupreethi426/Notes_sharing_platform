@@ -1,6 +1,6 @@
 # Note Sharing Platform
 
-Full-stack notes app: **React (Vite)** frontend + **Node (Express)** API + **SQLite** database (`server/data/*.sqlite` — ignored by Git; recreated on deploy).
+Full-stack notes app: **React (Vite)** frontend + **Node (Express)** API + **MongoDB Atlas** database.
 
 ## Run locally
 
@@ -21,9 +21,10 @@ npm run dev
 
 Or both at once from project root: `npm run dev:all` (after `npm install` at root **and** in `server/`).
 
-Copy `server/.env.example` to `server/.env` and set `JWT_SECRET` for anything beyond local toy use.
-
-Demo DB dump in terminal: from project root, `npm run demo:db`.
+### Configuration
+1. Copy `server/.env.example` to `server/.env`.
+2. Set `JWT_SECRET` for authentication.
+3. Set `MONGODB_URI` to your MongoDB Atlas connection string.
 
 ## Push to GitHub
 
@@ -31,25 +32,25 @@ Inside this folder (not your home directory):
 
 ```bash
 git status
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+git remote add origin https://github.com/vishnupreethi426/Notes_sharing_platform.git
 git push -u origin main
 ```
 
 Use a Personal Access Token (HTTPS) or SSH if two-factor authentication is enabled.
 
-If the repo already has commits elsewhere, coordinate with `git pull --rebase` before pushing.
-
 ## Deploy for judges / viva
 
 You need **two deployments** unless you bundle static files with Express:
 
-### 1) Backend (API + SQLite)
+### 1) Backend (API + MongoDB)
 
 - **Render**, **Railway**, or **Fly.io**: deploy the **`server`** directory as a **Node** service.
   - **Build:** `npm install`
   - **Start:** `npm start`
-  - **Environment:** `JWT_SECRET` (random long string), optionally `PORT` (platform often sets automatically).
-  - **SQLite caveat:** Free tiers usually have an **ephemeral disk** — data resets on restart. Enable a **persistent disk** on the provider, **or** use a hosted DB (PostgreSQL/MySQL/Turso) for a lasting demo account.
+  - **Environment Variables:** 
+    - `JWT_SECRET` (random long string)
+    - `MONGODB_URI` (your MongoDB Atlas connection string)
+    - Optionally `PORT` (platform often sets automatically)
 
 Copy the **public URL** you get (e.g. `https://note-api.onrender.com`).
 
