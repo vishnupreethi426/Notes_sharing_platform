@@ -21,12 +21,6 @@ const MONGODB_URI = process.env.MONGODB_URI
 
 if (!MONGODB_URI) {
   console.error('MONGODB_URI is not defined in .env')
-  process.exit(1)
-}
-
-if (JWT_SECRET === 'development-only-change-me-in-production' && process.env.NODE_ENV === 'production') {
-  console.error('Set JWT_SECRET in production')
-  process.exit(1)
 }
 
 // Initialize MongoDB
@@ -59,7 +53,12 @@ app.use('/api/notes', notesRouter)
 app.use('/api/files', needsAuth, filesRouter)
 app.use('/api/rooms', needsAuth, roomsRouter)
 
-app.listen(PORT, () => {
-  console.log(`API listening at http://localhost:${PORT}`)
-  console.log(`MongoDB connection initialized`)
-})
+// Only start the server if not running on Vercel
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`API listening at http://localhost:${PORT}`)
+    console.log(`MongoDB connection initialized`)
+  })
+}
+
+export default app
